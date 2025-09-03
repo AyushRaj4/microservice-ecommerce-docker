@@ -1,0 +1,32 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Logs
+logs
+*.log
+
+# Environment files
+.env
+.env.* 
+
+# Docker
+*.pid
+*.seed
+*.swp
+.dockerignore
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor settings
+.vscode/
+.idea/
+*.iml
+
+# Build artifacts (if you compile TS or build frontend)
+dist/
+build/
