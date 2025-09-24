@@ -1,73 +1,138 @@
+// const amqp = require('amqplib');
+
+// let connection = null;
+// let channel = null;
+
+// /**
+//  * Connect to RabbitMQ with retry logic
+//  * @param {number} retries - number of retries
+//  * @param {number} interval - wait time between retries in ms
+//  */
+// async function connectRabbitMQ(retries = 5, interval = 5000) {
+//     for (let i = 0; i < retries; i++) {
+//         try {
+//             // Use Docker service name, not IP
+//             connection = await amqp.connect("amqp://rabbitmq:5672");
+
+//             // Create a channel (virtual connection inside AMQP connection)
+//             channel = await connection.createChannel();
+
+//             await channel.assertExchange("orderExchange", "fanout", { durable: true });
+
+//             console.log("Connected to RabbitMQ");
+//             return channel;
+//         } catch (err) {
+//             console.error(`RabbitMQ connection failed (Attempt ${i + 1}):`, err.message);
+//             console.log(`Retrying in ${interval / 1000} seconds...`);
+//             await new Promise((res) => setTimeout(res, interval));
+//         }
+//     }
+
+//     throw new Error("Cannot connect to RabbitMQ after multiple attempts");
+// }
+
+// async function publishMessage(queue, message) {
+//     try {
+//         if(!channel) {
+//             channel = await connectRabbitMQ();
+//         }
+//         // await channel.assertQueue(queue, {
+//         //     durable: true
+//         // });
+//         // Step 4: Send the message to the queue
+//         // channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)));
+
+//         channel.publish(
+//             "orderExchange", // exchange name
+//             "",              // routing key is ignored in fanout
+//             Buffer.from(JSON.stringify(message))
+//         );
+
+//         console.log("Order published to queue:", message);
+//     } catch (error) {
+//         console.error("Error in publishing order:", error);
+//     }
+// }
+
+// async function consumeMessage(queue, callback) {
+//     try {
+//         if(!channel) {
+//             channel = await connectRabbitMQ();
+//         }
+
+//         // Create a separate queue for this service
+//         // const queue = "userQueue";
+//         await channel.assertQueue(queue, { durable: true });
+
+//         // Bind queue to exchange
+//         await channel.bindQueue(queue, "orderExchange", "");
+
+//         console.log("Waiting for messages in orderQueue...");
+
+//         channel.consume(queue, async (msg) => {
+//             if(msg !== null) {
+//                 const message = JSON.parse(msg.content.toString());
+//                 console.log("Received message from queue:", message);
+
+//                 await callback(message);
+
+//                 // Acknowledge that the message has been processed and remove it from the queue
+//                 channel.ack(msg);
+//             }
+//         });
+//         console.log("Waiting for messages in queue:", queue);
+//     } catch (error) {
+//         console.error("Error in consuming orders:", error);
+//     }
+// }
+
+// module.exports = {connectRabbitMQ, publishMessage, consumeMessage};
+
 const amqp = require("amqplib");
 
 let connection = null;
 let channel = null;
 
-/**
- * Connect to RabbitMQ with retry logic
- * @param {number} retries - number of retries
- * @param {number} interval - wait time between retries in ms
- */
 async function connectRabbitMQ(retries = 5, interval = 5000) {
   for (let i = 0; i < retries; i++) {
     try {
-      // Use Docker service name, not IP
       connection = await amqp.connect("amqp://rabbitmq:5672");
-
-      // Create a channel (virtual connection inside AMQP connection)
       channel = await connection.createChannel();
-
-      console.log("Connected to RabbitMQ");
+      await channel.assertExchange("orderExchange", "fanout", {
+        durable: true,
+      });
+      console.log("✅ Connected to RabbitMQ");
       return channel;
     } catch (err) {
       console.error(
         `RabbitMQ connection failed (Attempt ${i + 1}):`,
         err.message
       );
-      console.log(`Retrying in ${interval / 1000} seconds...`);
       await new Promise((res) => setTimeout(res, interval));
     }
   }
-
-  throw new Error("Cannot connect to RabbitMQ after multiple attempts");
+  throw new Error("Cannot connect to RabbitMQ");
 }
 
-async function publishMessage(queue, message) {
-  try {
-    if (!channel) {
-      channel = await connectRabbitMQ();
-    }
-    await channel.assertQueue(queue, {
-      durable: true,
-    });
-    // Step 4: Send the message to the queue
-    channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)));
-    console.log("Order published to queue:", message);
-  } catch (error) {
-    console.error("Error in publishing order:", error);
-  }
+async function publishMessage(message) {
+  if (!channel) await connectRabbitMQ();
+  channel.publish("orderExchange", "", Buffer.from(JSON.stringify(message)));
+  console.log("📤 Message published:", message);
 }
 
 async function consumeMessage(queue, callback) {
-  try {
-    if (!channel) {
-      channel = await connectRabbitMQ();
+  if (!channel) await connectRabbitMQ();
+  await channel.assertQueue(queue, { durable: true });
+  await channel.bindQueue(queue, "orderExchange", "");
+  console.log(`📥 Waiting for messages in queue: ${queue}`);
+
+  channel.consume(queue, async (msg) => {
+    if (msg !== null) {
+      const message = JSON.parse(msg.content.toString());
+      await callback(message);
+      channel.ack(msg);
     }
-    channel.consume(queue, async (msg) => {
-      if (msg !== null) {
-        const message = JSON.parse(msg.content.toString());
-        console.log("Received message from queue:", message);
-
-        await callback(message);
-
-        // Acknowledge that the message has been processed and remove it from the queue
-        channel.ack(msg);
-      }
-    });
-    console.log("Waiting for messages in queue:", queue);
-  } catch (error) {
-    console.error("Error in consuming orders:", error);
-  }
+  });
 }
 
 module.exports = { connectRabbitMQ, publishMessage, consumeMessage };

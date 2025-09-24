@@ -1,0 +1,23 @@
+Docker Compose is an important tool to save us writing long commands in terminal as well as creating multiple containers
+
+Commands
+1. docker compose up -d
+2. docker compose start -d
+3. docker compose stop
+4. docker compose down -v
+5. docker compose up -d --build
+6. docker volume prune -f
+7. docker compose -f docker-compose.dev/prod.yaml -f docker-compose.dev.yaml up -d --build
+8. docker compose -f docker-compose.dev/prod.yaml -f docker-compose.dev.yaml down
+9. docker exec -it comtainer-name /bin/mongosh -u "username" -p "password"
+
+What they do?
+1. runs the docker-compose file and creates the image(only 1st time) and container(also runs it)
+2. runs an already existing container
+3. stops a running container
+4. stops and removes the container created through docker-compose, -v also removes associated volumes
+5. the image builds only the 1st time when using docker-compose, to rebuild it use the --build tag
+6. remove unused/anonymous volumes, i.e. volumes that are not attached to any containers
+7. runs the default docker compose file and the docker compose dev or prod file and creates container
+8. stops the default docker compose file and the docker compose dev or prod file and removes the container
+9. shortcut to enter mongodb bash using credentialsf

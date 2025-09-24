@@ -1,0 +1,35 @@
+Commands:
+1. docker build -t express-app-image .
+2. docker image ls
+3. docker run -d -p 3000:3000 --name express-crud express-app-image
+4. docker start container-name
+5. docker stop container-name
+6. docker rm container-name -f
+7. docker ps, docker ps -a
+8. docker exec -it express-crud bash
+9. docker run -v $(pwd):/app -p 3000:3000 -d --name express-crud express-app-image
+10. docker logs container-name
+11. docker volume ls
+12. docker run -v $(pwd):/app -v /app/node_modules -p 3000:3000 -d --name express-crud express-app-image
+13. docker run -v $(pwd):/app:ro -v /app/node_modules -p 3000:3000 -d --name express-crud express-app-image
+14. docker rm container-name -fv
+15. docker run -v $(pwd):/app:ro -v /app/node_modules --env PORT=4000 -p 3000:4000 -d --name express-crud express-app-image
+16. docker run -v $(pwd):/app:ro -v /app/node_modules --env-file .env -p 3000:4000 -d --name express-crud express-app-image
+
+What they do?
+1. builds an image, -t means tag used to name image, here image name is express-app-image
+2. lists all built images
+3. used to create a container on an existing image -p means port, --name means name of image
+4. start docker container
+5. stop docker container
+6. delete docker container, -f means stop the container if running then delete
+7. lists all running processes/containers, with -a shows all containers whether running or not
+8.
+9.to reflect changes in docker live by refreshing use volume, -v to bind volume to present working directory which helps to sync code (use {pwd} or (pwd) depending on os)
+10. shows logs by docker for a running container
+11. shows list of all created volumes on docker
+12. mount anonymous volume, will ignore node_modules due to /app/node_modules in the command
+Note:- We will see node_modules in bash of the running container that is the node_modules created by docker, it's not from our local machine
+13. mount anonymous read only volume, changes from local machine will be reflected on docker but not the opposite
+14. force remove container and volume
+15. using environment variable through -env tag, PORT does not need to be set

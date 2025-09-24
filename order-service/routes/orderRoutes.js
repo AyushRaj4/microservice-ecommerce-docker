@@ -1,23 +1,22 @@
-const mongoose = require("mongoose");
-const {
-  MONGO_USERNAME,
-  MONGO_PASSWORD,
-  MONGO_DB_NAME,
-} = require("../utils/config");
+const express = require("express");
+const orderController = require("../controller/orderController");
+const { protect, restrictTo } = require("../middlewares/auth");
+const router = express.Router();
 
-// const MONGO_URI = `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@cluster0.zxvoo.mongodb.net/${MONGO_DB_NAME}?retryWrites=true&w=majority&appName=Cluster0`;
+// Create a new order
+// router.post("/", orderController.placeOrder);
+router.post("/", protect, orderController.placeOrder);
 
-// mongodb+srv://admin:<db_password>@cluster0.zxvoo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+// Get all orders
+router.get("/", orderController.getAllOrders);
 
-const MONGO_URI = `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo-db:27017/${MONGO_DB_NAME}?authSource=admin`;
+// Get a single order by ID
+router.get("/:id", orderController.getOrderById);
 
-const connectDB = async () => {
-  try {
-    await mongoose.connect(MONGO_URI);
-    console.log("MongoDB connected successfully");
-  } catch (error) {
-    console.log("MongoDB connected failed:", error);
-  }
-};
+// Update an order by ID
+router.put("/:id", orderController.updateOrder);
 
-module.exports = connectDB;
+// Delete an order by ID
+router.delete("/:id", orderController.deleteOrder);
+
+module.exports = router;

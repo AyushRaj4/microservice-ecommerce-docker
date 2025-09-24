@@ -5,6 +5,7 @@ dotenv.config();
 const app = express();
 const { PORT } = require("./utils/config");
 const connectDB = require("./config/db");
+const Product = require("./model/Product");
 const productRoutes = require("./routes/productRoutes");
 const { connectRabbitMQ, consumeMessage } = require("./utils/rabbitMQ");
 

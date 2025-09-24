@@ -29,7 +29,7 @@ async function connectRabbitMQ(retries = 5, interval = 5000) {
     }
   }
 
-  throw new Error("Cannot connect to RabbitMQ after multiple attempts");
+  // throw new Error("Cannot connect to RabbitMQ after multiple attempts");
 }
 
 async function publishMessage(queue, message) {
